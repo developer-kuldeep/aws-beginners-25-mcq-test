@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Essentials: Live MCQ Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-btn:hover { background-color: #f3f4f6; }
+        .selected { background-color: #e5e7eb; border-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8">
+        <div id="header" class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Tech Essentials Quiz</h1>
+            <p id="progress" class="text-sm text-gray-500 mt-1">Question 1 of 25</p>
+        </div>
+
+        <div id="quiz-body">
+            <div id="question-text" class="text-lg font-semibold text-gray-700 mb-6"></div>
+            <div id="options-grid" class="grid gap-3"></div>
+            <div id="feedback" class="mt-6 p-4 rounded-lg hidden"></div>
+        </div>
+
+        <div class="mt-8 flex justify-between items-center">
+            <button id="next-btn" class="hidden bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Next Question</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "What is the primary function of the Linux Kernel?", a: ["Manages software", "Manages hardware and system resources", "Provides a GUI", "Compiles code"], correct: 1, reason: "The Kernel is the heart of the OS, mediating between software and hardware." },
+            { q: "Which command lists all files in a directory?", a: ["show", "list", "ls", "dir"], correct: 2, reason: "In Linux, 'ls' is the standard command for listing directory contents." },
+            { q: "What does 'sudo' stand for?", a: ["SuperUser Do", "System Under Do", "Secure User Access", "Simple User Do"], correct: 0, reason: "Sudo stands for 'SuperUser Do' and allows execution of commands with elevated privileges." },
+            { q: "Which command changes the current directory?", a: ["mv", "cp", "cd", "pwd"], correct: 2, reason: "cd (change directory) moves you through the file system." },
+            { q: "What is the default port for HTTP?", a: ["22", "80", "443", "8080"], correct: 1, reason: "HTTP standard traffic is handled on port 80." },
+            { q: "What is the default port for HTTPS?", a: ["80", "443", "22", "8080"], correct: 1, reason: "HTTPS uses TLS/SSL to encrypt traffic on port 443." },
+            { q: "Which tool is a distributed version control system?", a: ["GitHub", "Git", "Nginx", "Apache"], correct: 1, reason: "Git is the version control software; GitHub is a hosting platform." },
+            { q: "What command initializes a new Git repository?", a: ["git start", "git init", "git new", "git repo"], correct: 1, reason: "git init is the standard command to create a new local repository." },
+            { q: "What command is used to download a remote repository?", a: ["git copy", "git clone", "git get", "git pull"], correct: 1, reason: "git clone creates a local copy of a remote repository." },
+            { q: "What does an HTTP 404 status code mean?", a: ["Success", "Server Error", "Not Found", "Unauthorized"], correct: 2, reason: "404 indicates the server cannot find the requested resource." },
+            { q: "Which status code represents a successful request?", a: ["200", "404", "500", "301"], correct: 0, reason: "200 OK means the request was successfully processed." },
+            { q: "What is Nginx primarily used for?", a: ["Database management", "Web server/Reverse proxy", "Programming language", "Version control"], correct: 1, reason: "Nginx is a high-performance web server and reverse proxy." },
+            { q: "Which of these is a common web server software?", a: ["Linux", "Apache", "GitHub", "Ubuntu"], correct: 1, reason: "Apache is one of the world's most popular open-source web servers." },
+            { q: "What command shows the present working directory?", a: ["where", "pwd", "ls", "cd"], correct: 1, reason: "pwd (print working directory) displays your current folder path." },
+            { q: "What is the purpose of the 'git commit' command?", a: ["Pushing code", "Saving changes to the local repo", "Creating a branch", "Downloading code"], correct: 1, reason: "Commit records changes to the local Git repository." },
+            { q: "Which protocol is more secure for data transfer?", a: ["HTTP", "HTTPS", "FTP", "Telnet"], correct: 1, reason: "HTTPS adds SSL/TLS encryption for security." },
+            { q: "What is Ubuntu?", a: ["A coding language", "A Linux distribution", "A web server", "A Git command"], correct: 1, reason: "Ubuntu is a popular, user-friendly Linux distribution." },
+            { q: "What happens if a server returns a 500 error?", a: ["User error", "Not found", "Internal Server Error", "Success"], correct: 2, reason: "500 indicates the server encountered an unexpected condition." },
+            { q: "Which Git command uploads local commits to a remote repo?", a: ["git push", "git send", "git upload", "git copy"], correct: 0, reason: "git push moves your local history to a remote hosting platform like GitHub." },
+            { q: "What is a network port?", a: ["A physical cable", "A communication endpoint", "A type of web server", "A file permission"], correct: 1, reason: "Ports are logical endpoints that allow different services to talk on the same IP." },
+            { q: "What is the command to install a package on Debian/Ubuntu?", a: ["apt install", "yum install", "get install", "run package"], correct: 0, reason: "apt install is the standard command on Ubuntu/Debian." },
+            { q: "What is the primary Git branch name?", a: ["main", "base", "root", "start"], correct: 0, reason: "main (or sometimes master) is the default branch." },
+            { q: "Which HTTP status code is used for permanent redirection?", a: ["200", "301", "404", "500"], correct: 1, reason: "301 indicates a permanent redirect." },
+            { q: "What is the difference between Git and GitHub?", a: ["None", "Git is the tool, GitHub is the host", "GitHub is the tool, Git is the host", "Git is only for Windows"], correct: 1, reason: "Git manages history, while GitHub hosts those histories in the cloud." },
+            { q: "What does 'grep' do in Linux?", a: ["Lists files", "Searches for text patterns", "Changes permissions", "Moves files"], correct: 1, reason: "grep is a powerful command-line utility for searching text." }
+        ];
+
+        let currentIdx = 0;
+        let score = 0;
+
+        const qText = document.getElementById('question-text');
+        const optGrid = document.getElementById('options-grid');
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        const progress = document.getElementById('progress');
+
+        function loadQuestion() {
+            const q = questions[currentIdx];
+            progress.innerText = `Question ${currentIdx + 1} of ${questions.length}`;
+            qText.innerText = q.q;
+            optGrid.innerHTML = '';
+            feedback.className = 'mt-6 p-4 rounded-lg hidden';
+            nextBtn.classList.add('hidden');
+
+            q.a.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn border-2 p-3 rounded-lg text-left transition';
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(i);
+                optGrid.appendChild(btn);
+            });
+        }
+
+        function selectOption(idx) {
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+            
+            const q = questions[currentIdx];
+            if(idx === q.correct) {
+                score++;
+                feedback.innerHTML = `<strong>Correct!</strong> ${q.reason}`;
+                feedback.className = 'mt-6 p-4 rounded-lg bg-green-100 text-green-800 block';
+            } else {
+                feedback.innerHTML = `<strong>Incorrect.</strong> ${q.reason}`;
+                feedback.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-800 block';
+            }
+            nextBtn.classList.remove('hidden');
+        }
+
+        nextBtn.onclick = () => {
+            currentIdx++;
+            if(currentIdx < questions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('quiz-body').innerHTML = `
+                    <div class="text-center py-10">
+                        <h2 class="text-3xl font-bold mb-4">Quiz Completed!</h2>
+                        <p class="text-xl">You scored ${score} out of ${questions.length}</p>
+                        <button onclick="location.reload()" class="mt-6 bg-blue-600 text-white px-8 py-3 rounded-lg font-bold">Restart Quiz</button>
+                    </div>
+                `;
+                nextBtn.remove();
+                progress.innerText = 'Test Finished';
+            }
+        };
+
+        loadQuestion();
+    </script>
+</body>
+</html>
